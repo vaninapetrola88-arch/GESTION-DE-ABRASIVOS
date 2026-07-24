@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión Abrasivos</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f0f2f5;color:#222;min-height:100vh}
+header{background:#1a3a5c;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:12px}
+header h1{font-size:18px;font-weight:600}
+header span{font-size:13px;opacity:.7}
+.container{max-width:1100px;margin:0 auto;padding:20px 16px}
+.nav{display:flex;gap:2px;border-bottom:2px solid #ddd;margin-bottom:20px;flex-wrap:wrap;background:#fff;border-radius:8px 8px 0 0;padding:4px 4px 0}
+.nav-btn{padding:10px 16px;font-size:13px;font-weight:600;border:none;background:none;cursor:pointer;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px;border-radius:6px 6px 0 0}
+.nav-btn.active{color:#1a3a5c;border-bottom:3px solid #1a3a5c;background:#f0f4f8}
+.nav-btn:hover:not(.active){color:#1a3a5c;background:#f7f9fc}
+.screen{display:none}.screen.active{display:block}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.metric{background:#fff;border-radius:8px;padding:16px;border:1px solid #e0e0e0;text-align:center}
+.metric .lbl{font-size:11px;color:#888;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.metric .val{font-size:22px;font-weight:700}
+.metric .val.green{color:#0a6b45}.metric .val.red{color:#b03030}.metric .val.amber{color:#8a5500}.metric .val.blue{color:#1a3a5c}
+.card{background:#fff;border-radius:8px;border:1px solid #e0e0e0;padding:20px;margin-bottom:14px}
+label{font-size:13px;color:#555;display:block;margin-bottom:4px;font-weight:500}
+input,select,textarea{width:100%;font-size:14px;border:1px solid #ccc;border-radius:6px;padding:8px 10px;background:#fff;color:#222}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#1a3a5c;box-shadow:0 0 0 2px #1a3a5c18}
+.row{display:flex;gap:10px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap}
+.row .field{flex:1;min-width:130px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;font-size:13px;font-weight:600;border-radius:6px;cursor:pointer;border:1px solid #ccc;background:#fff;color:#333;transition:all .15s}
+.btn:hover{background:#f0f4f8}
+.btn.primary{background:#1a3a5c;color:#fff;border-color:#1a3a5c}.btn.primary:hover{background:#122d47}
+.btn.success{background:#0a6b45;color:#fff;border-color:#0a6b45}.btn.success:hover{background:#085535}
+.btn.danger{background:#fff;color:#b03030;border-color:#f5a0a0}.btn.danger:hover{background:#fff0f0}
+.btn.warning{background:#8a5500;color:#fff;border-color:#8a5500}.btn.warning:hover{background:#6b4200}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:9px 10px;font-size:12px;font-weight:600;color:#555;border-bottom:2px solid #eee;background:#fafafa;white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid #f0f0f0;color:#222;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f7f9fc}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.badge.cobrado{background:#d4f0e4;color:#0a5c35}
+.badge.pendiente{background:#fef0d0;color:#7a4800}
+.badge.parcial{background:#ddeeff;color:#1a3a5c}
+.badge.entregado{background:#e8e8e8;color:#444}
+.badge.cartera{background:#fff0d0;color:#7a4800}
+.sect-title{font-size:14px;font-weight:700;color:#1a3a5c;margin-bottom:12px;border-left:3px solid #1a3a5c;padding-left:10px}
+.total-box{background:#f0f9f5;border:1px solid #b0ddc8;border-radius:8px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.divider{height:1px;background:#eee;margin:20px 0}
+.empty{color:#aaa;font-size:13px;text-align:center;padding:24px 0}
+.saldo-verde{background:#d4f0e4;color:#0a5c35;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.saldo-rojo{background:#fde0e0;color:#8a1f1f;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.presup-header{background:#f7f9fc;border:1px solid #dde4ee;border-radius:8px;padding:16px;margin-bottom:14px}
+.status-bar{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:6px;font-size:13px;margin-bottom:14px}
+.status-bar.ok{background:#d4f0e4;color:#0a5c35}
+.status-bar.error{background:#fde0e0;color:#8a1f1f}
+.status-bar.loading{background:#e8f0fe;color:#174ea6}
+.spinner{width:15px;height:15px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Item rows presupuesto */
+.item-grid{display:grid;grid-template-columns:2fr 70px 110px 90px 32px;gap:6px;align-items:center;margin-bottom:6px}
+.item-grid input{padding:6px 8px;font-size:13px}
+/* Cuenta corriente tabla estilo Excel */
+.cte-table{width:100%;border-collapse:collapse;font-size:13px}
+.cte-table th{background:#1a3a5c;color:#fff;padding:8px 10px;text-align:left;font-size:12px;white-space:nowrap}
+.cte-table td{padding:7px 10px;border-bottom:1px solid #eee}
+.cte-table tr:hover td{background:#f7f9fc}
+.cte-table .debe{color:#b03030;font-weight:600}
+.cte-table .haber{color:#0a6b45;font-weight:600}
+.cte-table .saldo-pos{color:#0a6b45;font-weight:700}
+.cte-table .saldo-neg{color:#b03030;font-weight:700}
+.cte-table .saldo-cero{color:#888;font-weight:600}
+/* Cheques */
+.cheque-row{background:#fffbe6;border:1px solid #ffe08a;border-radius:6px;padding:12px;margin-bottom:8px;position:relative}
+.cheque-row .cheque-title{font-size:12px;font-weight:700;color:#7a4800;margin-bottom:8px}
+.cheque-grid{display:grid;grid-template-columns:repeat(4,1fr) 32px;gap:6px;align-items:end}
+.cheque-grid input,. cheque-grid select{padding:6px 8px;font-size:12px}
+/* Dashboard */
+.dolar-box{background:#1a3a5c;color:#fff;border-radius:8px;padding:14px 18px;display:flex;gap:24px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.dolar-item{text-align:center}
+.dolar-item .dl{font-size:11px;opacity:.7;margin-bottom:2px}
+.dolar-item .dv{font-size:20px;font-weight:700}
+.dolar-item .dv.blue-val{color:#7ec8f7}
+.chart-container{background:#fff;border-radius:8px;border:1px solid #e0e0e0;padding:20px;margin-bottom:14px}
+canvas{max-width:100%}
+.ventas-manual-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-items:end;margin-bottom:8px}
+.ventas-manual-grid input{padding:6px 8px;font-size:12px}
+.highlight-row td{background:#fffbe6!important;font-weight:600}
+@media(max-width:700px){
+  .grid4{grid-template-columns:1fr 1fr}
+  .grid3{grid-template-columns:1fr 1fr}
+  .grid2{grid-template-columns:1fr}
+  .item-grid{grid-template-columns:1fr 60px 90px 70px 28px}
+  .cheque-grid{grid-template-columns:1fr 1fr}
+  header h1{font-size:14px}
+  .nav-btn{padding:8px 10px;font-size:12px}
+  .dolar-box{gap:12px}
+}
+</style>
+</head>
+<body>
+<header>
+  <svg width="26" height="26" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" fill="#fff2" stroke="#fff" stroke-width="1.5"/><path d="M8 14h12M14 8v12" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+  <div>
+    <h1>Sistema de Gestión — Abrasivos Especiales</h1>
+    <span id="fecha-hoy"></span>
+  </div>
+</header>
+
+<div class="container">
+<div id="status-bar" class="status-bar loading"><div class="spinner"></div><span>Conectando con Google Sheets...</span></div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showScreen('ventas',this)">&#128200; Ventas</button>
+  <button class="nav-btn" onclick="showScreen('presupuesto',this)">&#128196; Presupuesto</button>
+  <button class="nav-btn" onclick="showScreen('ctacte',this)">&#128203; Cta. Corriente</button>
+  <button class="nav-btn" onclick="showScreen('cobros',this)">&#128181; Cobros</button>
+  <button class="nav-btn" onclick="showScreen('cheques',this)">&#9993; Cheques</button>
+  <button class="nav-btn" onclick="showScreen('dashboard',this)">&#128202; Dashboard</button>
+</div>
+
+<!-- ===== VENTAS ===== -->
+<div id="s-ventas" class="screen active">
+  <div class="grid4">
+    <div class="metric"><div class="lbl">Ventas del mes</div><div class="val green" id="m-total">$0</div></div>
+    <div class="metric"><div class="lbl">Operaciones</div><div class="val" id="m-count">0</div></div>
+    <div class="metric"><div class="lbl">Cobrado</div><div class="val green" id="m-cobrado">$0</div></div>
+    <div class="metric"><div class="lbl">Pendiente</div><div class="val amber" id="m-pendiente">$0</div></div>
+  </div>
+  <div class="card">
+    <div class="sect-title">Registrar venta rápida</div>
+    <div class="row">
+      <div class="field"><label>Cliente</label><input type="text" id="v-cliente" placeholder="Nombre o empresa"/></div>
+      <div class="field"><label>Producto / descripción</label><input type="text" id="v-producto" placeholder="Ej: Disco abrasivo 230mm T27"/></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Cantidad</label><input type="number" id="v-cantidad" value="1" min="1"/></div>
+      <div class="field"><label>Precio unitario ($)</label><input type="number" id="v-precio" placeholder="0.00"/></div>
+      <div class="field"><label>Fecha</label><input type="date" id="v-fecha"/></div>
+      <div class="field"><label>Estado</label>
+        <select id="v-estado"><option value="pendiente">Pendiente</option><option value="cobrado">Cobrado</option><option value="parcial">Parcial</option></select>
+      </div>
+    </div>
+    <button class="btn primary" id="btn-venta" onclick="registrarVenta()">+ Registrar venta</button>
+  </div>
+  <div class="divider"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div class="sect-title" style="margin-bottom:0">Historial del mes</div>
+    <button class="btn sm" onclick="exportarCSV()">&#128194; Exportar CSV</button>
+  </div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Fecha</th><th>Cliente</th><th>Producto</th><th>Cant.</th><th style="text-align:right">P.Unit.</th><th style="text-align:right">Total</th><th>Estado</th><th></th></tr></thead>
+    <tbody id="tabla-ventas"><tr><td colspan="8" class="empty">Cargando...</td></tr></tbody>
+  </table>
+  </div>
+</div>
+
+<!-- ===== PRESUPUESTO ===== -->
+<div id="s-presupuesto" class="screen">
+  <div class="presup-header">
+    <div class="grid2">
+      <div><label>Cliente</label><input type="text" id="p-cliente" placeholder="Nombre o empresa"/></div>
+      <div><label>Fecha</label><input type="date" id="p-fecha"/></div>
+    </div>
+    <div><label>Observaciones / condiciones de entrega</label><input type="text" id="p-obs" placeholder="Ej: Entrega en 5 días hábiles. Válido por 7 días."/></div>
+  </div>
+
+  <div class="sect-title">Ítems del presupuesto (hasta 30 productos)</div>
+  <div style="display:grid;grid-template-columns:2fr 70px 110px 90px 32px;gap:6px;margin-bottom:6px;padding:0 2px">
+    <span style="font-size:11px;color:#888;font-weight:700;text-transform:uppercase">Descripción del producto</span>
+    <span style="font-size:11px;color:#888;font-weight:700;text-transform:uppercase">Cant.</span>
+    <span style="font-size:11px;color:#888;font-weight:700;text-transform:uppercase">Precio unit. ($)</span>
+    <span style="font-size:11px;color:#888;font-weight:700;text-transform:uppercase">Subtotal</span>
+    <span></span>
+  </div>
+  <div id="items-container"></div>
+  <button class="btn sm" onclick="addItem()" style="margin-bottom:14px;margin-top:4px">+ Agregar ítem</button>
+
+  <div class="total-box">
+    <span style="font-size:15px;font-weight:700">TOTAL DEL PRESUPUESTO</span>
+    <span style="font-size:26px;font-weight:700;color:#0a6b45" id="p-total">$0,00</span>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+    <button class="btn primary" id="btn-presup" onclick="guardarPresupuesto()">&#10003; Guardar y pasar a ventas</button>
+    <button class="btn" onclick="imprimirPresupuesto()">&#128438; Imprimir / PDF</button>
+    <button class="btn" onclick="limpiarPresupuesto()">&#10005; Limpiar</button>
+  </div>
+</div>
+
+<!-- ===== CUENTA CORRIENTE ===== -->
+<div id="s-ctacte" class="screen">
+  <div class="row" style="margin-bottom:14px">
+    <div class="field" style="max-width:300px"><label>Cliente</label>
+      <select id="filtro-cliente" onchange="renderCtaCte()"><option value="">— Seleccionar cliente —</option></select>
+    </div>
+    <div style="align-self:flex-end">
+      <button class="btn sm" onclick="exportarCtaCte()">&#128194; Exportar Excel</button>
+    </div>
+  </div>
+
+  <div class="grid3" id="cte-metricas">
+    <div class="metric"><div class="lbl">Total facturado</div><div class="val green" id="cte-facturado">$0</div></div>
+    <div class="metric"><div class="lbl">Total cobrado</div><div class="val blue" id="cte-cobrado-total">$0</div></div>
+    <div class="metric"><div class="lbl">Saldo pendiente</div><div class="val red" id="cte-deuda">$0</div></div>
+  </div>
+
+  <div class="chart-container" style="padding:14px">
+    <div id="cte-contenido">
+      <div class="empty">Seleccioná un cliente para ver su cuenta corriente.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== COBROS ===== -->
+<div id="s-cobros" class="screen">
+  <div class="card">
+    <div class="sect-title">Registrar cobro</div>
+    <div class="row">
+      <div class="field"><label>Cliente</label>
+        <select id="c-cliente" onchange="actualizarSaldoCliente()"><option value="">Seleccionar cliente...</option></select>
+      </div>
+      <div class="field"><label>Fecha</label><input type="date" id="c-fecha"/></div>
+      <div class="field"><label>Forma de pago</label>
+        <select id="c-forma" onchange="mostrarFormaPago()">
+          <option value="">Seleccionar...</option>
+          <option value="efectivo">Efectivo</option>
+          <option value="transferencia">Transferencia</option>
+          <option value="cheque">Cheque papel</option>
+          <option value="echeq">E-Cheq</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Saldo del cliente -->
+    <div id="saldo-cliente-box" style="display:none;background:#f0f4f8;border-radius:6px;padding:10px 14px;margin-bottom:12px;font-size:13px">
+      Saldo pendiente de <strong id="saldo-cliente-nombre"></strong>: <strong id="saldo-cliente-monto" style="color:#b03030"></strong>
+    </div>
+
+    <!-- EFECTIVO -->
+    <div id="fp-efectivo" style="display:none">
+      <div class="row">
+        <div class="field"><label>Importe cobrado ($)</label><input type="number" id="ef-monto" placeholder="0.00"/></div>
+        <div class="field"><label>Nota (opcional)</label><input type="text" id="ef-nota" placeholder="Observación"/></div>
+      </div>
+    </div>
+
+    <!-- TRANSFERENCIA -->
+    <div id="fp-transferencia" style="display:none">
+      <div class="row">
+        <div class="field"><label>Importe ($)</label><input type="number" id="tr-monto" placeholder="0.00"/></div>
+        <div class="field"><label>Cuenta destino / CBU</label><input type="text" id="tr-cuenta" placeholder="Ej: CBU 0000... o Alias"/></div>
+        <div class="field"><label>Referencia</label><input type="text" id="tr-ref" placeholder="Nro. de transferencia"/></div>
+      </div>
+    </div>
+
+    <!-- CHEQUES (papel o echeq) -->
+    <div id="fp-cheques" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-size:13px;font-weight:600;color:#1a3a5c">Cheques recibidos</span>
+        <button class="btn sm warning" onclick="addChequeRow()">+ Agregar cheque</button>
+      </div>
+      <div style="display:grid;grid-template-columns:100px 1fr 110px 110px 90px 32px;gap:6px;margin-bottom:4px;padding:0 2px">
+        <span style="font-size:11px;color:#888;font-weight:700">Nro. cheque</span>
+        <span style="font-size:11px;color:#888;font-weight:700">Banco / Emisor</span>
+        <span style="font-size:11px;color:#888;font-weight:700">F. emisión</span>
+        <span style="font-size:11px;color:#888;font-weight:700">F. cobro</span>
+        <span style="font-size:11px;color:#888;font-weight:700">Importe ($)</span>
+        <span></span>
+      </div>
+      <div id="cheques-container"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;background:#fffbe6;padding:10px 14px;border-radius:6px;border:1px solid #ffe08a">
+        <span style="font-size:13px;font-weight:600">Total cheques</span>
+        <span style="font-size:18px;font-weight:700;color:#7a4800" id="total-cheques">$0,00</span>
+      </div>
+    </div>
+
+    <div style="margin-top:14px">
+      <button class="btn success" id="btn-cobro" onclick="registrarCobro()">&#128181; Registrar cobro</button>
+    </div>
+  </div>
+
+  <div class="sect-title">Historial de cobros</div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Fecha</th><th>Cliente</th><th style="text-align:right">Importe</th><th>Forma</th><th>Detalle</th></tr></thead>
+    <tbody id="tabla-cobros"><tr><td colspan="5" class="empty">Cargando...</td></tr></tbody>
+  </table>
+  </div>
+</div>
+
+<!-- ===== CHEQUES ===== -->
+<div id="s-cheques" class="screen">
+  <div class="grid3">
+    <div class="metric"><div class="lbl">En cartera</div><div class="val amber" id="ch-cartera">$0</div></div>
+    <div class="metric"><div class="lbl">Entregados</div><div class="val blue" id="ch-entregados">$0</div></div>
+    <div class="metric"><div class="lbl">Total recibido</div><div class="val green" id="ch-total">$0</div></div>
+  </div>
+  <div class="sect-title">Registro de cheques recibidos</div>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>F. ingreso</th><th>Cliente</th><th>Tipo</th><th>Nro.</th><th>Banco/Emisor</th><th>F. emisión</th><th>F. cobro</th><th style="text-align:right">Importe</th><th>Estado</th><th>Destino / A quién</th><th>F. salida</th><th></th></tr></thead>
+    <tbody id="tabla-cheques"><tr><td colspan="12" class="empty">Cargando...</td></tr></tbody>
+  </table>
+  </div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="s-dashboard" class="screen">
+
+  <!-- Tipo de cambio -->
+  <div class="dolar-box" id="dolar-box">
+    <div class="dolar-item"><div class="dl">Dólar oficial</div><div class="dv" id="d-oficial">...</div></div>
+    <div class="dolar-item"><div class="dl">Dólar blue</div><div class="dv blue-val" id="d-blue">...</div></div>
+    <div class="dolar-item"><div class="dl">Actualizado</div><div class="dv" style="font-size:13px" id="d-fecha">...</div></div>
+    <button class="btn sm" style="margin-left:auto;background:#fff2;border-color:#fff4;color:#fff" onclick="cargarDolar()">&#8635; Actualizar</button>
+  </div>
+
+  <!-- Ventas manuales (oficiales) -->
+  <div class="card">
+    <div class="sect-title">Ventas oficiales facturadas (con IVA) — ingreso manual por mes</div>
+    <p style="font-size:12px;color:#888;margin-bottom:12px">Ingresá tus ventas oficiales mes a mes para combinarlas con las de este sistema en el gráfico.</p>
+    <div id="ventas-oficiales-container"></div>
+    <button class="btn sm primary" onclick="guardarVentasOficiales()" style="margin-top:8px">&#10003; Guardar datos oficiales</button>
+  </div>
+
+  <!-- Gastos -->
+  <div class="card">
+    <div class="sect-title">Gastos por mes — ingreso manual</div>
+    <div id="gastos-container"></div>
+    <button class="btn sm primary" onclick="guardarGastos()" style="margin-top:8px">&#10003; Guardar gastos</button>
+  </div>
+
+  <!-- Gráfico -->
+  <div class="chart-container">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="sect-title" style="margin-bottom:0">Gráfico anual de ventas y gastos</div>
+      <select id="anio-select" onchange="renderDashboard()" style="width:auto;padding:6px 10px;font-size:13px">
+      </select>
+    </div>
+    <canvas id="grafico-ventas" height="300"></canvas>
+  </div>
+
+  <!-- Tabla resumen anual -->
+  <div class="card">
+    <div class="sect-title">Resumen anual en pesos y dólares</div>
+    <div style="overflow-x:auto">
+    <table id="tabla-resumen">
+      <thead><tr>
+        <th>Mes</th>
+        <th style="text-align:right">Vtas sistema</th>
+        <th style="text-align:right">Vtas oficiales c/IVA</th>
+        <th style="text-align:right">Vtas oficiales s/IVA</th>
+        <th style="text-align:right">Total s/IVA</th>
+        <th style="text-align:right">Total USD oficial</th>
+        <th style="text-align:right">Total USD blue</th>
+        <th style="text-align:right">Gastos oficiales</th>
+        <th style="text-align:right">Gastos no oficiales</th>
+        <th style="text-align:right">Resultado</th>
+      </tr></thead>
+      <tbody id="tbody-resumen"></tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyLxs7SNL1zKqZea5deWCO7VS2uWtxI-dNUw4IKQkE51RR9HfLwOxFSSVSOMgUNnxuGtw/exec';
+const IVA = 0.21;
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+const $ = id => document.getElementById(id);
+const fmt = n => '$' + Number(n).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtU = n => 'USD ' + Number(n).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0});
+const today = () => new Date().toISOString().slice(0,10);
+const fmtFecha = f => { if(!f)return''; const s=String(f).slice(0,10); return new Date(s+'T00:00:00').toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}); };
+
+$('fecha-hoy').textContent = new Date().toLocaleDateString('es-AR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+$('v-fecha').value=today(); $('p-fecha').value=today(); $('c-fecha').value=today();
+
+let data = { ventas:[], cobros:[], cheques:[] };
+let localData = JSON.parse(localStorage.getItem('abrasivos_local')||'{}');
+// localData: { ventasOficiales:{}, gastos:{} }
+if(!localData.ventasOficiales) localData.ventasOficiales={};
+if(!localData.gastos) localData.gastos={};
+
+let currentScreen='ventas';
+let itemCountLocal=0;
+let chequeCount=0;
+let graficoVentas=null;
+let dolarOficial=0, dolarBlue=0;
+
+function saveLocal(){ localStorage.setItem('abrasivos_local',JSON.stringify(localData)); }
+
+function setStatus(tipo,msg){
+  const bar=$('status-bar');
+  bar.className='status-bar '+tipo;
+  bar.innerHTML=tipo==='loading'?'<div class="spinner"></div><span>'+msg+'</span>':'<span>'+(tipo==='ok'?'&#10003; ':'&#9888; ')+msg+'</span>';
+}
+
+function apiJsonp(params){
+  return new Promise((resolve,reject)=>{
+    const cbName='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const url=new URL(SCRIPT_URL);
+    Object.keys(params).forEach(k=>url.searchParams.set(k,params[k]));
+    url.searchParams.set('callback',cbName);
+    window[cbName]=function(d){ delete window[cbName]; document.head.removeChild(script); resolve(d); };
+    const script=document.createElement('script');
+    script.src=url.toString();
+    script.onerror=()=>{ delete window[cbName]; try{document.head.removeChild(script);}catch(e){} reject(new Error('Error de red')); };
+    document.head.appendChild(script);
+    setTimeout(()=>{ if(window[cbName]){ delete window[cbName]; try{document.head.removeChild(script);}catch(e){} reject(new Error('Timeout')); } },30000);
+  });
+}
+
+async function cargarDatos(){
+  setStatus('loading','Conectando con Google Sheets...');
+  try {
+    const r=await apiJsonp({action:'getData'});
+    if(r.ok){
+      data.ventas=(r.ventas||[]).map(v=>({id:String(v.id),fecha:String(v.fecha).slice(0,10),cliente:v.cliente,producto:v.producto,cantidad:Number(v.cantidad),precio:Number(v.precio),total:Number(v.total),estado:v.estado}));
+      data.cobros=(r.cobros||[]).map(c=>({id:String(c.id),fecha:String(c.fecha).slice(0,10),cliente:c.cliente,monto:Number(c.monto),forma:c.forma,detalle:c.detalle||''}));
+      data.cheques=(r.cheques||[]).map(ch=>({id:String(ch.id),fechaIngreso:String(ch.fechaIngreso||'').slice(0,10),cliente:ch.cliente,tipo:ch.tipo,nro:ch.nro,banco:ch.banco,fechaEmision:String(ch.fechaEmision||'').slice(0,10),fechaCobro:String(ch.fechaCobro||'').slice(0,10),importe:Number(ch.importe),estado:ch.estado||'cartera',destino:ch.destino||'',fechaSalida:String(ch.fechaSalida||'').slice(0,10)}));
+      setStatus('ok','Conectado con Google Sheets');
+      renderAll();
+    } else { setStatus('error','Error: '+(r.error||'desconocido')); }
+  } catch(e){ setStatus('error','No se pudo conectar. Verificá tu conexión.'); }
+}
+
+function renderAll(){ updateSelects(); renderVentas(); renderCheques(); }
+
+function showScreen(id,btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  $('s-'+id).classList.add('active'); btn.classList.add('active');
+  currentScreen=id;
+  if(id==='ventas') renderVentas();
+  if(id==='ctacte'){updateSelects();renderCtaCte();}
+  if(id==='cobros'){updateSelects();renderCobros();}
+  if(id==='cheques') renderCheques();
+  if(id==='dashboard'){cargarDolar();renderDashboard();}
+}
+
+function getClientes(){ return [...new Set(data.ventas.map(v=>v.cliente).filter(Boolean))].sort(); }
+
+function updateSelects(){
+  const clientes=getClientes();
+  ['filtro-cliente','c-cliente'].forEach(id=>{
+    const sel=$(id); if(!sel)return;
+    const val=sel.value;
+    const first=id==='filtro-cliente'?'<option value="">— Seleccionar cliente —</option>':'<option value="">Seleccionar cliente...</option>';
+    sel.innerHTML=first+clientes.map(c=>`<option value="${c}"${c===val?' selected':''}>${c}</option>`).join('');
+  });
+}
+
+// ===== VENTAS =====
+function renderVentas(){
+  const now=new Date();
+  const esMes=v=>{const d=new Date(v.fecha+'T00:00:00');return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();};
+  const mes=data.ventas.filter(esMes);
+  $('m-total').textContent=fmt(mes.reduce((s,v)=>s+v.total,0));
+  $('m-count').textContent=mes.length;
+  $('m-cobrado').textContent=fmt(mes.filter(v=>v.estado==='cobrado').reduce((s,v)=>s+v.total,0));
+  $('m-pendiente').textContent=fmt(mes.filter(v=>v.estado!=='cobrado').reduce((s,v)=>s+v.total,0));
+  const tbody=$('tabla-ventas');
+  if(!data.ventas.length){tbody.innerHTML='<tr><td colspan="8" class="empty">Sin ventas registradas aún.</td></tr>';return;}
+  tbody.innerHTML=[...data.ventas].sort((a,b)=>b.fecha.localeCompare(a.fecha)).map(v=>`<tr>
+    <td>${fmtFecha(v.fecha)}</td><td><strong>${v.cliente}</strong></td><td>${v.producto}</td>
+    <td style="text-align:center">${v.cantidad}</td>
+    <td style="text-align:right">${fmt(v.precio)}</td>
+    <td style="text-align:right;font-weight:700">${fmt(v.total)}</td>
+    <td><span class="badge ${v.estado}">${v.estado.charAt(0).toUpperCase()+v.estado.slice(1)}</span></td>
+    <td><button class="btn danger sm" onclick="eliminarVenta('${v.id}')">&#128465;</button></td>
+  </tr>`).join('');
+}
+
+async function registrarVenta(){
+  const cliente=$('v-cliente').value.trim(),producto=$('v-producto').value.trim();
+  const cantidad=parseFloat($('v-cantidad').value)||1,precio=parseFloat($('v-precio').value)||0;
+  const fecha=$('v-fecha').value||today(),estado=$('v-estado').value;
+  if(!cliente||!producto||!precio){alert('Completá cliente, producto y precio.');return;}
+  const btn=$('btn-venta');btn.disabled=true;btn.textContent='Guardando...';
+  const id=Date.now().toString(),total=cantidad*precio;
+  try{
+    const r=await apiJsonp({action:'addVenta',id,fecha,cliente,producto,cantidad,precio,total,estado});
+    if(r.ok){
+      data.ventas.push({id,fecha,cliente,producto,cantidad,precio,total,estado});
+      $('v-cliente').value='';$('v-producto').value='';$('v-cantidad').value=1;$('v-precio').value='';
+      updateSelects();renderVentas();setStatus('ok','Venta registrada &#10003;');
+    }else{alert('Error: '+(r.error||''));}
+  }catch(e){alert('Error de conexión.');}
+  btn.disabled=false;btn.textContent='+ Registrar venta';
+}
+
+async function eliminarVenta(id){
+  if(!confirm('¿Eliminar esta venta?'))return;
+  try{
+    const r=await apiJsonp({action:'deleteVenta',id});
+    if(r.ok){data.ventas=data.ventas.filter(v=>v.id!==id);renderVentas();setStatus('ok','Eliminada &#10003;');}
+    else{alert('Error: '+(r.error||''));}
+  }catch(e){alert('Error de conexión.');}
+}
+
+// ===== PRESUPUESTO =====
+function addItem(desc='',cant=1,precio=0){
+  itemCountLocal++;
+  const id='item-'+itemCountLocal;
+  const div=document.createElement('div');
+  div.className='item-grid';div.id=id;
+  div.innerHTML=`
+    <input type="text" placeholder="Descripción del producto o servicio" value="${desc}" oninput="calcTotal()"/>
+    <input type="number" value="${cant}" min="1" style="text-align:center" oninput="calcTotal()"/>
+    <input type="number" value="${precio||''}" placeholder="0.00" oninput="calcTotal()"/>
+    <span style="font-size:13px;font-weight:700;color:#0a6b45;text-align:right;padding-right:4px" id="sub-${itemCountLocal}">$0,00</span>
+    <button class="btn danger sm" onclick="this.parentElement.remove();calcTotal()" title="Eliminar">&#10005;</button>
+  `;
+  $('items-container').appendChild(div);calcTotal();
+}
+
+function calcTotal(){
+  let total=0;
+  $('items-container').querySelectorAll('.item-grid').forEach(row=>{
+    const inp=row.querySelectorAll('input');
+    const c=parseFloat(inp[1].value)||0,p=parseFloat(inp[2].value)||0,s=c*p;
+    total+=s;
+    const sp=document.getElementById('sub-'+row.id.replace('item-',''));
+    if(sp)sp.textContent=fmt(s);
+  });
+  $('p-total').textContent=fmt(total);
+}
+
+function limpiarPresupuesto(){
+  $('p-cliente').value='';$('p-obs').value='';$('p-fecha').value=today();
+  $('items-container').innerHTML='';$('p-total').textContent='$0,00';
+  itemCountLocal=0;addItem();
+}
+
+async function guardarPresupuesto(){
+  const cliente=$('p-cliente').value.trim(),fecha=$('p-fecha').value||today();
+  if(!cliente){alert('Ingresá el nombre del cliente.');return;}
+  const rows=$('items-container').querySelectorAll('.item-grid');
+  let productos=[],total=0;
+  rows.forEach(row=>{
+    const inp=row.querySelectorAll('input');
+    const desc=inp[0].value.trim(),cant=parseFloat(inp[1].value)||0,precio=parseFloat(inp[2].value)||0;
+    if(desc&&precio){productos.push({desc,cant,precio});total+=cant*precio;}
+  });
+  if(!total){alert('Agregá al menos un ítem con precio.');return;}
+  const btn=$('btn-presup');btn.disabled=true;btn.textContent='Guardando...';
+  const resumen=productos.map(p=>p.cant+'x '+p.desc).join(' | ');
+  const id=Date.now().toString();
+  try{
+    const r=await apiJsonp({action:'addVenta',id,fecha,cliente,producto:resumen,cantidad:1,precio:total,total,estado:'pendiente'});
+    if(r.ok){
+      data.ventas.push({id,fecha,cliente,producto:resumen,cantidad:1,precio:total,total,estado:'pendiente'});
+      updateSelects();renderVentas();
+      setStatus('ok','Presupuesto guardado &#10003;');
+      alert('Guardado y registrado en ventas como pendiente para '+cliente+'.');
+      limpiarPresupuesto();
+    }else{alert('Error: '+(r.error||''));}
+  }catch(e){alert('Error de conexión.');}
+  btn.disabled=false;btn.textContent='&#10003; Guardar y pasar a ventas';
+}
+
+function imprimirPresupuesto(){
+  const cliente=$('p-cliente').value.trim()||'(sin cliente)',obs=$('p-obs').value.trim(),fecha=$('p-fecha').value||today();
+  const rows=$('items-container').querySelectorAll('.item-grid');
+  let filas='',total=0,nroItem=0;
+  rows.forEach(row=>{
+    const inp=row.querySelectorAll('input');
+    const desc=inp[0].value.trim(),cant=parseFloat(inp[1].value)||0,precio=parseFloat(inp[2].value)||0,sub=cant*precio;
+    total+=sub; nroItem++;
+    if(desc)filas+=`<tr><td style="color:#888;text-align:center">${nroItem}</td><td>${desc}</td><td style="text-align:center">${cant}</td><td style="text-align:right">${fmt(precio)}</td><td style="text-align:right"><strong>${fmt(sub)}</strong></td></tr>`;
+  });
+  if(!filas){alert('Completá los ítems.');return;}
+  const nro='P-'+Date.now().toString().slice(-6);
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Presupuesto ${nro}</title>
+  <style>body{font-family:Arial,sans-serif;max-width:750px;margin:30px auto;padding:0 20px;color:#222;font-size:13px}
+  .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1a3a5c;padding-bottom:14px;margin-bottom:20px}
+  .empresa{font-size:20px;font-weight:800;color:#1a3a5c}.sub{font-size:12px;color:#666;margin-top:3px}
+  .meta{text-align:right;font-size:12px;color:#555}.meta strong{display:block;font-size:14px;color:#222;margin-bottom:3px}
+  table{width:100%;border-collapse:collapse;margin:14px 0}
+  th{background:#1a3a5c;color:#fff;padding:8px 10px;text-align:left;font-size:12px}
+  td{padding:8px 10px;border-bottom:1px solid #eee;font-size:13px}
+  .total-row td{background:#f0f9f5;font-size:15px;font-weight:800;border-top:2px solid #0a6b45}
+  .obs{background:#fffbe6;border:1px solid #ffe08a;border-radius:6px;padding:10px;margin-top:14px;font-size:12px}
+  .footer{margin-top:36px;font-size:11px;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:14px}
+  @media print{body{margin:0}}</style></head><body>
+  <div class="header">
+    <div><div class="empresa">Abrasivos Especiales</div><div class="sub">Fabricación y venta a pedido</div></div>
+    <div class="meta"><strong>Presupuesto N° ${nro}</strong>Fecha: ${fmtFecha(fecha)}<br>Cliente: <strong>${cliente}</strong></div>
+  </div>
+  <table><thead><tr><th>#</th><th>Descripción</th><th style="text-align:center">Cant.</th><th style="text-align:right">P. unitario</th><th style="text-align:right">Subtotal</th></tr></thead>
+  <tbody>${filas}<tr class="total-row"><td colspan="4" style="text-align:right">TOTAL</td><td style="text-align:right">${fmt(total)}</td></tr></tbody></table>
+  ${obs?'<div class="obs"><strong>Observaciones:</strong> '+obs+'</div>':''}
+  <div class="footer">Presupuesto sin impuestos &nbsp;|&nbsp; Válido por 7 días corridos</div>
+  </body></html>`;
+  const w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(()=>w.print(),400);
+}
+
+// ===== CUENTA CORRIENTE =====
+function renderCtaCte(){
+  const filtro=$('filtro-cliente').value;
+  const cobrosMap=data.cobros.reduce((acc,c)=>{if(!acc[c.cliente])acc[c.cliente]=[];acc[c.cliente].push(c);return acc;},{});
+  const facturadoTotal=data.ventas.reduce((s,v)=>s+v.total,0);
+  const cobradoTotal=data.cobros.reduce((s,c)=>s+c.monto,0);
+  $('cte-facturado').textContent=fmt(facturadoTotal);
+  $('cte-cobrado-total').textContent=fmt(cobradoTotal);
+  $('cte-deuda').textContent=fmt(Math.max(0,facturadoTotal-cobradoTotal));
+
+  if(!filtro){$('cte-contenido').innerHTML='<div class="empty">Seleccioná un cliente para ver su cuenta corriente detallada.</div>';return;}
+
+  // Armar movimientos cronológicos: ventas=DEBE, cobros=HABER
+  let movs=[];
+  data.ventas.filter(v=>v.cliente===filtro).forEach(v=>movs.push({fecha:v.fecha,tipo:'venta',desc:v.producto,debe:v.total,haber:0,ref:v.id}));
+  (cobrosMap[filtro]||[]).forEach(c=>movs.push({fecha:c.fecha,tipo:'cobro',desc:c.forma+' '+c.detalle,debe:0,haber:c.monto,ref:c.id}));
+  movs.sort((a,b)=>a.fecha.localeCompare(b.fecha));
+
+  let saldo=0;
+  let filas='';
+  movs.forEach((m,i)=>{
+    saldo+=m.debe-m.haber;
+    const saldoClass=saldo>0?'saldo-neg':saldo<0?'saldo-pos':'saldo-cero';
+    filas+=`<tr${m.tipo==='venta'?' style="background:#fffafa"':''}>
+      <td>${fmtFecha(m.fecha)}</td>
+      <td><span class="badge ${m.tipo==='venta'?'pendiente':'cobrado'}">${m.tipo==='venta'?'Venta':'Cobro'}</span></td>
+      <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${m.desc}">${m.desc}</td>
+      <td class="debe" style="text-align:right">${m.debe>0?fmt(m.debe):''}</td>
+      <td class="haber" style="text-align:right">${m.haber>0?fmt(m.haber):''}</td>
+      <td class="${saldoClass}" style="text-align:right">${fmt(Math.abs(saldo))} ${saldo>0?'&#128308;':saldo<0?'&#128994;':''}</td>
+    </tr>`;
+  });
+
+  const totalDebe=movs.reduce((s,m)=>s+m.debe,0);
+  const totalHaber=movs.reduce((s,m)=>s+m.haber,0);
+  const saldoFinal=totalDebe-totalHaber;
+
+  $('cte-contenido').innerHTML=`
+    <div style="font-size:14px;font-weight:700;color:#1a3a5c;margin-bottom:10px">Cuenta corriente: ${filtro}</div>
+    <div style="overflow-x:auto">
+    <table class="cte-table">
+      <thead><tr>
+        <th>Fecha</th><th>Tipo</th><th>Descripción</th>
+        <th style="text-align:right">DEBE</th>
+        <th style="text-align:right">HABER</th>
+        <th style="text-align:right">SALDO</th>
+      </tr></thead>
+      <tbody>${filas||'<tr><td colspan="6" class="empty">Sin movimientos.</td></tr>'}
+      <tr style="background:#f0f4f8;font-weight:700;font-size:13px">
+        <td colspan="3" style="text-align:right;padding-right:10px">TOTALES</td>
+        <td class="debe" style="text-align:right">${fmt(totalDebe)}</td>
+        <td class="haber" style="text-align:right">${fmt(totalHaber)}</td>
+        <td class="${saldoFinal>0?'saldo-neg':'saldo-pos'}" style="text-align:right">${fmt(Math.abs(saldoFinal))} ${saldoFinal>0?'(DEBE)':'(A FAVOR)'}</td>
+      </tr>
+      </tbody>
+    </table>
+    </div>`;
+}
+
+function exportarCtaCte(){
+  const filtro=$('filtro-cliente').value;
+  if(!filtro){alert('Seleccioná un cliente primero.');return;}
+  let movs=[];
+  data.ventas.filter(v=>v.cliente===filtro).forEach(v=>movs.push({fecha:v.fecha,tipo:'Venta',desc:v.producto,debe:v.total,haber:0}));
+  data.cobros.filter(c=>c.cliente===filtro).forEach(c=>movs.push({fecha:c.fecha,tipo:'Cobro',desc:c.forma+' '+c.detalle,debe:0,haber:c.monto}));
+  movs.sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  let saldo=0;
+  let csv='\uFEFFFecha,Tipo,Descripcion,Debe,Haber,Saldo\n';
+  movs.forEach(m=>{saldo+=m.debe-m.haber;csv+=`"${fmtFecha(m.fecha)}","${m.tipo}","${m.desc}","${m.debe||''}","${m.haber||''}","${saldo}"\n`;});
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='cta_cte_'+filtro.replace(/\s/g,'_')+'_'+today()+'.csv';
+  a.click();
+}
+
+// ===== COBROS =====
+function actualizarSaldoCliente(){
+  const cli=$('c-cliente').value;
+  if(!cli){$('saldo-cliente-box').style.display='none';return;}
+  const totalVtas=data.ventas.filter(v=>v.cliente===cli).reduce((s,v)=>s+v.total,0);
+  const totalCob=data.cobros.filter(c=>c.cliente===cli).reduce((s,c)=>s+c.monto,0);
+  const saldo=totalVtas-totalCob;
+  $('saldo-cliente-nombre').textContent=cli;
+  $('saldo-cliente-monto').textContent=fmt(Math.max(0,saldo));
+  $('saldo-cliente-box').style.display='block';
+}
+
+function mostrarFormaPago(){
+  const f=$('c-forma').value;
+  ['fp-efectivo','fp-transferencia','fp-cheques'].forEach(id=>$(id).style.display='none');
+  if(f==='efectivo') $('fp-efectivo').style.display='block';
+  else if(f==='transferencia') $('fp-transferencia').style.display='block';
+  else if(f==='cheque'||f==='echeq'){$('fp-cheques').style.display='block';if($('cheques-container').children.length===0)addChequeRow();}
+}
+
+function addChequeRow(){
+  chequeCount++;
+  const div=document.createElement('div');
+  div.className='cheque-row';div.id='cheque-'+chequeCount;
+  div.innerHTML=`
+    <div class="cheque-title">Cheque #${chequeCount}</div>
+    <div class="cheque-grid">
+      <input type="text" placeholder="Nro. cheque"/>
+      <input type="text" placeholder="Banco / Emisor"/>
+      <input type="date" title="Fecha de emisión"/>
+      <input type="date" title="Fecha de cobro/vencimiento"/>
+      <input type="number" placeholder="Importe" oninput="calcTotalCheques()"/>
+      <button class="btn danger sm" onclick="this.parentElement.parentElement.remove();calcTotalCheques()" title="Eliminar">&#10005;</button>
+    </div>
+  `;
+  $('cheques-container').appendChild(div);
+  calcTotalCheques();
+}
+
+function calcTotalCheques(){
+  let total=0;
+  $('cheques-container').querySelectorAll('.cheque-row').forEach(row=>{
+    const inp=row.querySelectorAll('input');
+    total+=parseFloat(inp[4].value)||0;
+  });
+  $('total-cheques').textContent=fmt(total);
+}
+
+function renderCobros(){
+  const tbody=$('tabla-cobros');
+  if(!data.cobros.length){tbody.innerHTML='<tr><td colspan="5" class="empty">Sin cobros registrados.</td></tr>';return;}
+  tbody.innerHTML=[...data.cobros].sort((a,b)=>b.fecha.localeCompare(a.fecha)).map(c=>`<tr>
+    <td>${fmtFecha(c.fecha)}</td><td><strong>${c.cliente}</strong></td>
+    <td style="text-align:right;font-weight:700;color:#0a6b45">${fmt(c.monto)}</td>
+    <td>${c.forma}</td><td style="color:#888;font-size:12px">${c.detalle||'-'}</td>
+  </tr>`).join('');
+}
+
+async function registrarCobro(){
+  const cliente=$('c-cliente').value,forma=$('c-forma').value,fecha=$('c-fecha').value||today();
+  if(!cliente){alert('Seleccioná un cliente.');return;}
+  if(!forma){alert('Seleccioná la forma de pago.');return;}
+
+  let monto=0,detalle='';
+  let chequesParaGuardar=[];
+
+  if(forma==='efectivo'){
+    monto=parseFloat($('ef-monto').value)||0;
+    detalle=$('ef-nota').value.trim();
+    if(!monto){alert('Ingresá el importe.');return;}
+  } else if(forma==='transferencia'){
+    monto=parseFloat($('tr-monto').value)||0;
+    detalle='Cta: '+$('tr-cuenta').value.trim()+' Ref: '+$('tr-ref').value.trim();
+    if(!monto){alert('Ingresá el importe.');return;}
+  } else if(forma==='cheque'||forma==='echeq'){
+    const rows=$('cheques-container').querySelectorAll('.cheque-row');
+    if(!rows.length){alert('Agregá al menos un cheque.');return;}
+    rows.forEach(row=>{
+      const inp=row.querySelectorAll('input');
+      const nro=inp[0].value.trim(),banco=inp[1].value.trim(),fEmision=inp[2].value,fCobro=inp[3].value,imp=parseFloat(inp[4].value)||0;
+      if(imp>0){monto+=imp;chequesParaGuardar.push({nro,banco,fEmision,fCobro,importe:imp});}
+    });
+    detalle=chequesParaGuardar.length+' cheque(s) - '+chequesParaGuardar.map(c=>'#'+c.nro).join(', ');
+    if(!monto){alert('Ingresá el importe de los cheques.');return;}
+  }
+
+  const btn=$('btn-cobro');btn.disabled=true;btn.textContent='Guardando...';
+  const id=Date.now().toString();
+
+  try{
+    const r=await apiJsonp({action:'addCobro',id,fecha,cliente,monto,forma:forma==='efectivo'?'Efectivo':forma==='transferencia'?'Transferencia':forma==='cheque'?'Cheque papel':'E-Cheq',detalle});
+    if(!r.ok){alert('Error: '+(r.error||''));btn.disabled=false;btn.textContent='&#128181; Registrar cobro';return;}
+    data.cobros.push({id,fecha,cliente,monto,forma:forma==='efectivo'?'Efectivo':forma==='transferencia'?'Transferencia':forma==='cheque'?'Cheque papel':'E-Cheq',detalle});
+
+    // Guardar cheques individuales
+    for(const ch of chequesParaGuardar){
+      const chId=Date.now().toString()+'_'+Math.random().toString(36).slice(2,6);
+      const rch=await apiJsonp({action:'addCheque',id:chId,fechaIngreso:fecha,cliente,tipo:forma==='cheque'?'Cheque papel':'E-Cheq',nro:ch.nro,banco:ch.banco,fechaEmision:ch.fEmision,fechaCobro:ch.fCobro,importe:ch.importe,estado:'cartera',destino:'',fechaSalida:''});
+      if(rch.ok) data.cheques.push({id:chId,fechaIngreso:fecha,cliente,tipo:forma==='cheque'?'Cheque papel':'E-Cheq',nro:ch.nro,banco:ch.banco,fechaEmision:ch.fEmision,fechaCobro:ch.fCobro,importe:ch.importe,estado:'cartera',destino:'',fechaSalida:''});
+    }
+
+    // Actualizar estados de ventas
+    let restante=monto;
+    const promises=[];
+    data.ventas.filter(v=>v.cliente===cliente&&v.estado!=='cobrado').sort((a,b)=>a.fecha.localeCompare(b.fecha)).forEach(v=>{
+      if(restante<=0)return;
+      const nuevoEstado=restante>=v.total?'cobrado':'parcial';
+      if(restante>=v.total)restante-=v.total;else restante=0;
+      promises.push(apiJsonp({action:'updateEstado',id:v.id,estado:nuevoEstado}));
+      v.estado=nuevoEstado;
+    });
+    await Promise.all(promises);
+
+    // Limpiar formulario
+    $('c-forma').value='';mostrarFormaPago();
+    $('ef-monto').value='';$('ef-nota').value='';
+    $('tr-monto').value='';$('tr-cuenta').value='';$('tr-ref').value='';
+    $('cheques-container').innerHTML='';chequeCount=0;calcTotalCheques();
+    $('saldo-cliente-box').style.display='none';
+
+    renderCobros();renderVentas();renderCheques();
+    setStatus('ok','Cobro registrado &#10003;');
+    alert('Cobro de '+fmt(monto)+' registrado para '+cliente+'.');
+  }catch(e){alert('Error de conexión.');}
+  btn.disabled=false;btn.textContent='&#128181; Registrar cobro';
+}
+
+// ===== CHEQUES =====
+function renderCheques(){
+  const enCartera=data.cheques.filter(c=>c.estado==='cartera').reduce((s,c)=>s+c.importe,0);
+  const entregados=data.cheques.filter(c=>c.estado==='entregado').reduce((s,c)=>s+c.importe,0);
+  $('ch-cartera').textContent=fmt(enCartera);
+  $('ch-entregados').textContent=fmt(entregados);
+  $('ch-total').textContent=fmt(enCartera+entregados);
+
+  const tbody=$('tabla-cheques');
+  if(!data.cheques.length){tbody.innerHTML='<tr><td colspan="12" class="empty">Sin cheques registrados.</td></tr>';return;}
+  tbody.innerHTML=[...data.cheques].sort((a,b)=>b.fechaIngreso.localeCompare(a.fechaIngreso)).map(ch=>`<tr>
+    <td>${fmtFecha(ch.fechaIngreso)}</td>
+    <td><strong>${ch.cliente}</strong></td>
+    <td><span class="badge ${ch.tipo==='E-Cheq'?'cobrado':'pendiente'}">${ch.tipo}</span></td>
+    <td>${ch.nro||'-'}</td>
+    <td>${ch.banco||'-'}</td>
+    <td>${fmtFecha(ch.fechaEmision)}</td>
+    <td>${fmtFecha(ch.fechaCobro)}</td>
+    <td style="text-align:right;font-weight:700">${fmt(ch.importe)}</td>
+    <td><span class="badge ${ch.estado==='cartera'?'pendiente':'entregado'}">${ch.estado==='cartera'?'En cartera':'Entregado'}</span></td>
+    <td>${ch.estado==='entregado'?ch.destino||'-':'<input type="text" style="width:120px;padding:4px 6px;font-size:12px" placeholder="A quién..." id="dest-${ch.id}" value="${ch.destino||''}"/>'}</td>
+    <td>${ch.estado==='entregado'?fmtFecha(ch.fechaSalida):'<input type="date" style="width:120px;padding:4px 6px;font-size:12px" id="fsalida-${ch.id}" value="${ch.fechaSalida||''}"/>'}</td>
+    <td>${ch.estado==='cartera'?`<button class="btn sm success" onclick="entregarCheque('${ch.id}')">Entregar</button>`:'&#10003;'}</td>
+  </tr>`).join('');
+}
+
+async function entregarCheque(id){
+  const destino=($('dest-'+id)||{}).value||'';
+  const fechaSalida=($('fsalida-'+id)||{}).value||today();
+  if(!destino){alert('Ingresá a quién se entrega el cheque.');return;}
+  try{
+    const r=await apiJsonp({action:'updateCheque',id,estado:'entregado',destino,fechaSalida});
+    if(r.ok){
+      const ch=data.cheques.find(c=>c.id===id);
+      if(ch){ch.estado='entregado';ch.destino=destino;ch.fechaSalida=fechaSalida;}
+      renderCheques();setStatus('ok','Cheque entregado &#10003;');
+    }else{alert('Error: '+(r.error||''));}
+  }catch(e){alert('Error de conexión.');}
+}
+
+// ===== DASHBOARD =====
+async function cargarDolar(){
+  try{
+    const r=await fetch('https://dolarapi.com/v1/dolares');
+    const dolares=await r.json();
+    const oficial=dolares.find(d=>d.casa==='oficial');
+    const blue=dolares.find(d=>d.casa==='blue');
+    if(oficial){dolarOficial=oficial.venta;$('d-oficial').textContent=fmt(oficial.venta);}
+    if(blue){dolarBlue=blue.venta;$('d-blue').textContent=fmt(blue.venta);}
+    $('d-fecha').textContent=new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){
+    $('d-oficial').textContent='Sin conexión';$('d-blue').textContent='Sin conexión';
+  }
+}
+
+function initDashboard(){
+  const anioActual=new Date().getFullYear();
+  const anios=[anioActual-1,anioActual,anioActual+1];
+  const sel=$('anio-select');
+  sel.innerHTML=anios.map(a=>`<option value="${a}"${a===anioActual?' selected':''}>${a}</option>`).join('');
+
+  // Generar grillas de ventas oficiales y gastos
+  const voContainer=$('ventas-oficiales-container');
+  const gContainer=$('gastos-container');
+  voContainer.innerHTML='';gContainer.innerHTML='';
+
+  // Encabezados ventas oficiales
+  voContainer.innerHTML=`<div style="display:grid;grid-template-columns:100px repeat(12,1fr);gap:6px;margin-bottom:4px">
+    <span style="font-size:11px;color:#888;font-weight:700"></span>
+    ${MESES.map(m=>'<span style="font-size:11px;color:#888;font-weight:700;text-align:center">'+m.slice(0,3)+'</span>').join('')}
+  </div>
+  <div style="display:grid;grid-template-columns:100px repeat(12,1fr);gap:6px;margin-bottom:6px">
+    <span style="font-size:12px;font-weight:600;align-self:center">Con IVA ($)</span>
+    ${MESES.map((_,i)=>`<input type="number" id="vo-${anioActual}-${i}" placeholder="0" value="${localData.ventasOficiales[anioActual+'-'+i]||''}" style="padding:5px 6px;font-size:12px;text-align:right"/>`).join('')}
+  </div>`;
+
+  // Gastos
+  gContainer.innerHTML=`<div style="display:grid;grid-template-columns:130px repeat(12,1fr);gap:6px;margin-bottom:4px">
+    <span></span>
+    ${MESES.map(m=>'<span style="font-size:11px;color:#888;font-weight:700;text-align:center">'+m.slice(0,3)+'</span>').join('')}
+  </div>
+  <div style="display:grid;grid-template-columns:130px repeat(12,1fr);gap:6px;margin-bottom:6px">
+    <span style="font-size:12px;font-weight:600;align-self:center">Gastos oficiales</span>
+    ${MESES.map((_,i)=>`<input type="number" id="go-${anioActual}-${i}" placeholder="0" value="${(localData.gastos[anioActual+'-'+i]||{}).oficial||''}" style="padding:5px 6px;font-size:12px;text-align:right"/>`).join('')}
+  </div>
+  <div style="display:grid;grid-template-columns:130px repeat(12,1fr);gap:6px">
+    <span style="font-size:12px;font-weight:600;align-self:center">Gastos no oficiales</span>
+    ${MESES.map((_,i)=>`<input type="number" id="gnu-${anioActual}-${i}" placeholder="0" value="${(localData.gastos[anioActual+'-'+i]||{}).noOficial||''}" style="padding:5px 6px;font-size:12px;text-align:right"/>`).join('')}
+  </div>`;
+}
+
+function guardarVentasOficiales(){
+  const anio=parseInt($('anio-select').value)||new Date().getFullYear();
+  MESES.forEach((_,i)=>{
+    const v=parseFloat(($('vo-'+anio+'-'+i)||{}).value)||0;
+    if(v) localData.ventasOficiales[anio+'-'+i]=v;
+    else delete localData.ventasOficiales[anio+'-'+i];
+  });
+  saveLocal();renderDashboard();setStatus('ok','Ventas oficiales guardadas &#10003;');
+}
+
+function guardarGastos(){
+  const anio=parseInt($('anio-select').value)||new Date().getFullYear();
+  MESES.forEach((_,i)=>{
+    const of=parseFloat(($('go-'+anio+'-'+i)||{}).value)||0;
+    const nof=parseFloat(($('gnu-'+anio+'-'+i)||{}).value)||0;
+    if(of||nof) localData.gastos[anio+'-'+i]={oficial:of,noOficial:nof};
+    else delete localData.gastos[anio+'-'+i];
+  });
+  saveLocal();renderDashboard();setStatus('ok','Gastos guardados &#10003;');
+}
+
+function renderDashboard(){
+  const anio=parseInt($('anio-select').value)||new Date().getFullYear();
+  const labels=MESES.map(m=>m.slice(0,3));
+  const vtsSistema=MESES.map((_,i)=>data.ventas.filter(v=>{const d=new Date(v.fecha+'T00:00:00');return d.getFullYear()===anio&&d.getMonth()===i;}).reduce((s,v)=>s+v.total,0));
+  const vtsOficial=MESES.map((_,i)=>localData.ventasOficiales[anio+'-'+i]||0);
+  const vtsOficialSIVA=vtsOficial.map(v=>v/(1+IVA));
+  const gastosOf=MESES.map((_,i)=>(localData.gastos[anio+'-'+i]||{}).oficial||0);
+  const gastosNOf=MESES.map((_,i)=>(localData.gastos[anio+'-'+i]||{}).noOficial||0);
+  const totalSIVA=MESES.map((_,i)=>vtsSistema[i]+vtsOficialSIVA[i]);
+  const totalUSDOf=totalSIVA.map(v=>dolarOficial?v/dolarOficial:0);
+  const totalUSDBlue=totalSIVA.map(v=>dolarBlue?v/dolarBlue:0);
+
+  // Gráfico
+  if(graficoVentas) graficoVentas.destroy();
+  const ctx=$('grafico-ventas').getContext('2d');
+  graficoVentas=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {label:'Ventas sistema ($)',data:vtsSistema,backgroundColor:'#1a3a5c',borderRadius:4},
+        {label:'Ventas oficiales s/IVA ($)',data:vtsOficialSIVA,backgroundColor:'#2e86de',borderRadius:4},
+        {label:'Gastos oficiales',data:gastosOf,backgroundColor:'#e74c3c',borderRadius:4},
+        {label:'Gastos no oficiales',data:gastosNOf,backgroundColor:'#e67e22',borderRadius:4},
+      ]
+    },
+    options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{ticks:{callback:v=>'$'+Number(v).toLocaleString('es-AR')}}}}
+  });
+
+  // Tabla resumen
+  const tbody=$('tbody-resumen');
+  tbody.innerHTML=MESES.map((mes,i)=>`<tr${vtsSistema[i]||vtsOficial[i]?' class="highlight-row"':''}>
+    <td><strong>${mes}</strong></td>
+    <td style="text-align:right">${fmt(vtsSistema[i])}</td>
+    <td style="text-align:right">${fmt(vtsOficial[i])}</td>
+    <td style="text-align:right">${fmt(vtsOficialSIVA[i])}</td>
+    <td style="text-align:right;font-weight:700;color:#0a6b45">${fmt(totalSIVA[i])}</td>
+    <td style="text-align:right">${dolarOficial?fmtU(totalUSDOf[i]):'-'}</td>
+    <td style="text-align:right">${dolarBlue?fmtU(totalUSDBlue[i]):'-'}</td>
+    <td style="text-align:right;color:#b03030">${fmt(gastosOf[i])}</td>
+    <td style="text-align:right;color:#e67e22">${fmt(gastosNOf[i])}</td>
+    <td style="text-align:right;font-weight:700;color:${totalSIVA[i]-gastosOf[i]-gastosNOf[i]>=0?'#0a6b45':'#b03030'}">${fmt(totalSIVA[i]-gastosOf[i]-gastosNOf[i])}</td>
+  </tr>`).join('');
+}
+
+function exportarCSV(){
+  let csv='\uFEFFfecha,cliente,producto,cantidad,precio,total,estado\n';
+  data.ventas.forEach(v=>{csv+=`"${fmtFecha(v.fecha)}","${v.cliente}","${v.producto}","${v.cantidad}","${v.precio}","${v.total}","${v.estado}"\n`;});
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='ventas_'+today()+'.csv';a.click();
+}
+
+// INIT
+addItem();
+initDashboard();
+cargarDatos();
+</script>
+</body>
+</html>
